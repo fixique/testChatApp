@@ -26,7 +26,7 @@ class ChatViewController: JSQMessagesViewController {
         self.senderId = "1"
         self.senderDisplayName = "Fixique"
         
-        //observeMessages()
+        observeMessages()
     }
     
     func observeMessages() {
@@ -35,8 +35,31 @@ class ChatViewController: JSQMessagesViewController {
                 let mediaType = dict["mediaType"] as! String
                 let senderId = dict["senderId"] as! String
                 let senderName = dict["senderName"] as! String
-                let text = dict["text"] as! String
-                self.messages.append(JSQMessage(senderId: senderId, displayName: senderName, text: text))
+                
+                switch mediaType {
+                case "TEXT":
+                    let text = dict["text"] as! String
+                    self.messages.append(JSQMessage(senderId: senderId, displayName: senderName, text: text))
+
+                case "PHOTO":
+                    let fileUrl = dict["fileUrl"] as! String
+                    let url = URL(string: fileUrl)
+                    let data = NSData(contentsOf: url!)
+                    let picture = UIImage(data: data! as Data)
+                    let photo = JSQPhotoMediaItem(image: picture)
+                    self.messages.append(JSQMessage(senderId: senderId, displayName: senderName, media: photo))
+
+                case "VIDEO":
+                    let fileUrl = dict["fileUrl"] as! String
+                    let video = URL(string: fileUrl)
+                    let videoItem = JSQVideoMediaItem(fileURL: video, isReadyToPlay: true)
+                    self.messages.append(JSQMessage(senderId: senderId, displayName: senderName, media: videoItem))
+
+                    
+                default:
+                    print("unknown data type")
+                }
+            
                 self.collectionView.reloadData()
             }
         })
